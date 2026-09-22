@@ -11,7 +11,7 @@ window.TZDB = {
     {name:"華世京", cohort:"106期", media:10, card:17, lead:14, product:16, verified:67.1, note:"『ポーの一族』新人公演主演、2027ステージ＋ポスター"},
     {name:"天飛華音", cohort:"102期", media:15, card:15, lead:12, product:16, verified:68.2, note:"GRAPH二人表紙、2027ステージ＋ポスター"},
     {name:"鷹翔千空", cohort:"101期", media:10, card:15, lead:12, product:16, verified:62.4, note:"2027ステージ＋ポスター"},
-    {name:"侑輝大弥", cohort:"103期", media:12, card:14, lead:10, product:12, verified:56.5, note:"RISING STAR系、2027ステージ＋卓上"},
+    {name:"侑輝大弥", cohort:"102期", media:12, card:14, lead:10, product:12, verified:56.5, note:"RISING STAR系、2027ステージ＋卓上"},
     {name:"鏡星珠", cohort:"106期", media:5, card:17, lead:12, product:8, verified:49.4, note:"『蒼月抄』新人公演主演、2027卓上"},
     {name:"彩葉ゆめ", cohort:"110期", media:5, card:18, lead:14, product:2, verified:45.9, note:"新人公演ヒロイン経験、『エリザベート』少年ルドルフ"}
   ],
