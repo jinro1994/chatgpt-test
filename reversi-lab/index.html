@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b6742"><meta name="description" content="端末内で動作するリバーシ解析ツール。合法手・最善手候補・終盤の勝敗証明。">
+<title>Reversi Lab — リバーシ解析</title>
+<style>
+:root{--ink:#182b37;--sub:#61727a;--bg:#f4f6f4;--card:#fff;--line:#dce6df;--green:#157347;--green-dark:#064d30;--board:#0e7347;--cell:#22945d;--cell2:#259b60;--gold:#ffc04d;--font:system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",YuGothic,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
+*{box-sizing:border-box}html{color-scheme:light}body{margin:0;background:var(--bg);font:15px/1.55 var(--font);color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}button:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #5cabc9;outline-offset:2px}
+.site-head{background:#fff;border-bottom:1px solid var(--line)}.head-inner{max-width:1160px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:13px;background:#0a6340;display:grid;grid-template-columns:repeat(2,11px);grid-template-rows:repeat(2,11px);gap:5px;place-content:center;box-shadow:inset 0 0 0 1px #075539}.logo i{width:11px;height:11px;border-radius:50%;background:#f6f6f6;display:block}.logo i:nth-child(2),.logo i:nth-child(3){background:#172b32}.brand h1{font-size:21px;letter-spacing:-.03em;margin:0;line-height:1.2}.brand small{color:var(--sub);font-size:12px}.head-tag{font-size:12px;background:#edf6ef;color:#17633a;border-radius:99px;padding:5px 11px;white-space:nowrap;font-weight:650}
+.page{max-width:1160px;margin:24px auto 60px;padding:0 20px}.intro{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:20px}.intro h2{font-size:24px;letter-spacing:-.035em;margin:0 0 3px}.intro p{margin:0;color:var(--sub);font-size:13px}.layout{display:grid;grid-template-columns:minmax(0,620px) minmax(295px,1fr);gap:20px;align-items:start}.panel{background:var(--card);border-radius:18px;border:1px solid var(--line);box-shadow:0 5px 25px #17372307}.board-panel{padding:18px}.side-panel{display:flex;flex-direction:column;gap:16px}.panel-title{font-size:16px;font-weight:750;margin:0 0 10px}.row-line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.tabs{display:flex;background:#eff3f0;border-radius:11px;padding:4px;gap:3px}.tabs button{padding:7px 14px;border:0;background:transparent;color:#577066;border-radius:8px;font-size:13px;font-weight:650}.tabs button.selected{background:white;color:#0c6c42;box-shadow:0 1px 5px #1235}.turn{color:var(--sub);font-size:13px;display:flex;align-items:center;gap:6px}.mini-disk{width:15px;height:15px;border-radius:50%;border:1px solid #adb8b1;background:linear-gradient(135deg,#fff,#dce3df);display:inline-block}.mini-disk.black{background:linear-gradient(125deg,#4b5c63,#101a20);border-color:#23323d}.turn strong{color:#1b3034}
+.board-area{display:grid;grid-template-columns:20px minmax(0,1fr);grid-template-rows:auto 20px;gap:4px;max-width:550px;margin:20px auto 5px}.rank{display:grid;grid-template-rows:repeat(8,minmax(0,1fr));align-items:center;text-align:center;font-size:11px;color:#7a8b83;line-height:1}.file{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));align-items:center;text-align:center;font-size:11px;color:#7a8b83}.board{aspect-ratio:1;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:3px;padding:7px;border-radius:12px;background:var(--board);box-shadow:inset 0 2px 8px #001a0e55,0 5px 12px #126b4333}.square{min-width:0;min-height:0;border:0;border-radius:4px;display:grid;place-items:center;background:var(--cell);position:relative;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}.square:nth-child(even){background:var(--cell2)}.square.legal:after{content:'';width:11%;height:11%;min-width:5px;min-height:5px;border-radius:50%;background:#07351d88;position:absolute}.square.best{background:#339e52;box-shadow:inset 0 0 0 3px var(--gold);z-index:1}.square.best:after{background:var(--gold);width:18%;height:18%}.square:hover{filter:brightness(1.1)}.disk{width:76%;height:76%;border-radius:50%;box-shadow:0 2px 5px #0005}.disk.black{background:radial-gradient(circle at 30% 25%,#52616a 0,#1f2b32 56%,#111a1e 100%)}.disk.white{background:radial-gradient(circle at 29% 22%,#fff 0,#f3f5f3 55%,#c8d0ca 100%);border:1px solid #ccd4ce}.square.last .disk{outline:3px solid #f9bc53;outline-offset:2px}.square.edit{cursor:crosshair}
+.score-row{display:flex;gap:10px;margin:20px 3px 13px}.scorebox{flex:1;padding:12px;border-radius:12px;background:#f5f7f6;display:flex;align-items:center;justify-content:space-between;gap:8px}.scorebox span{color:#697973;font-size:13px}.scorebox strong{font-size:23px;line-height:1;font-variant-numeric:tabular-nums}.scorebox.black{border-bottom:3px solid #28353c}.scorebox.white{border-bottom:3px solid #d1d7d2}.scorebox .mini-disk{margin-right:4px}.scorebox .score-label{display:flex;align-items:center;gap:6px}.action-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.btn{background:#fff;color:var(--ink);border:1px solid #cddad1;border-radius:10px;padding:10px 11px;font-size:13px;font-weight:650;line-height:1.25}.btn:hover:not(:disabled){border-color:#7da991;background:#f7fbf8}.btn.primary{background:#0b764a;border-color:#0b764a;color:white}.btn.primary:hover:not(:disabled){background:#075f3b}.btn.secondary{background:#eff6f1;border-color:#deeee2;color:#116b40}.btn.danger{color:#aa3434}.btn.wide{width:100%;padding:13px 14px;font-size:15px}.btn .loading{display:inline-block;width:14px;height:14px;border:2px solid #ffffff8c;border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:6px}@keyframes spin{to{transform:rotate(360deg)}}.hint{font-size:12px;color:var(--sub);margin:11px 0 0}.edit-toolbar{padding:12px;margin-top:12px;background:#f0f7f2;border-radius:10px;display:none}.edit-toolbar.active{display:block}.edit-toolbar p{margin:0 0 9px;color:#557363;font-size:12px}.selectrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}.selectrow select,.settings select{background:#fff;border:1px solid #cddbd1;border-radius:9px;padding:9px;color:var(--ink)}
+.analysis-panel{padding:20px}.eyebrow{font-size:11px;font-weight:750;color:#17764e;letter-spacing:.11em;text-transform:uppercase}.analysis-header{display:flex;justify-content:space-between;gap:8px;align-items:center}.mode-pill{border:1px solid #d9e6dd;color:#59746a;background:#f7faf8;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:700}.recommend{margin:14px 0 0;display:flex;align-items:center;gap:12px}.move-big{font-size:46px;font-weight:800;line-height:1;letter-spacing:-.05em;font-variant-numeric:tabular-nums}.move-hint{font-size:12px;color:var(--sub)}.analysis-status{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;font-size:13px}.analysis-status p{margin:5px 0;color:#536a60}.metric{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:13px;margin:10px 0}.metric span{color:var(--sub)}.metric strong{font-variant-numeric:tabular-nums}.proof{margin:12px 0;padding:10px 12px;border-radius:10px;background:#eaf7ee;color:#17603f;font-weight:650;font-size:13px}.warning{margin:12px 0;padding:10px 12px;border-radius:10px;background:#fff5e9;color:#7f552c;font-size:12px}.settings{padding:20px}.setting-row{margin:12px 0}.settings label{display:block;font-size:12px;color:#5f7167;font-weight:600;margin:0 0 5px}.settings select{width:100%}.settings small{display:block;color:var(--sub);font-size:11px;margin:5px 0}.import-panel{padding:20px}.import-panel summary{font-weight:700;font-size:15px;cursor:pointer}.import-panel textarea{width:100%;resize:vertical;min-height:117px;margin-top:11px;border:1px solid #cfddd2;border-radius:8px;padding:10px;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.import-panel .action-row{margin-top:9px}.import-panel small{font-size:11px;color:var(--sub)}.sample-buttons{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.sample-buttons button{font-size:11px;padding:7px 9px}.footnote{font-size:12px;color:#64776f;max-width:1160px;margin:20px auto;padding:0 20px 25px}.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1b3530;color:white;border-radius:12px;padding:10px 16px;box-shadow:0 8px 25px #0004;z-index:10;font-size:13px;max-width:90%;display:none}.toast.visible{display:block}
+@media(max-width:790px){.page{margin-top:14px}.intro{margin-bottom:14px}.layout{grid-template-columns:1fr;gap:14px}.side-panel{display:grid;grid-template-columns:1fr 1fr;align-items:start}.analysis-panel{grid-column:1/-1}.board-panel{padding:14px}.board-area{margin:12px auto 0}.head-inner{padding:12px 16px}}@media(max-width:550px){.page{padding:0 10px}.intro{padding:0 6px}.intro h2{font-size:19px}.head-inner{padding:12px}.brand h1{font-size:18px}.head-tag{font-size:10px}.side-panel{grid-template-columns:1fr;gap:12px}.board-panel{padding:10px}.board{padding:5px;gap:2px}.board-area{grid-template-columns:15px minmax(0,1fr);grid-template-rows:auto 15px;gap:3px;margin:12px 1px 0}.score-row{margin-top:14px}.scorebox{padding:10px}.scorebox strong{font-size:21px}.analysis-panel,.settings,.import-panel{padding:16px}.btn{padding:10px 6px}.footnote{padding:0 16px 25px}}
+
+/* v1.1: visible static preview when a sandbox disables JavaScript */
+.preview-warning{max-width:1160px;margin:0 auto 16px;padding:13px 16px;border-radius:12px;border:1px solid #e6ca95;background:#fff8e9;color:#78551f;display:grid;gap:5px;font-size:13px}
+.preview-warning[hidden]{display:none!important}
+.preview-warning strong{font-size:14px}
+.help-panel{max-width:1160px;margin:10px auto 20px;padding:0 20px;color:#4e6159}
+.help-panel details{border:1px solid var(--line);border-radius:14px;padding:14px 18px;background:#fff}
+.help-panel summary{cursor:pointer;font-weight:750;color:#173b2a}
+.help-panel p{font-size:13px;line-height:1.8;margin:10px 0}
+@media(max-width:550px){.help-panel{padding:0 10px}}
+
+</style>
+</head>
+<body>
+<header class="site-head"><div class="head-inner">
+  <div class="brand"><div class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div><h1>Reversi Lab</h1><small>リバーシ解析エンジン Web版</small></div></div>
+  <div class="head-tag">端末内で解析</div>
+</div></header>
+<main class="page">
+ <div id="preview-warning" class="preview-warning" role="alert">
+  <strong>プレビュー表示のため、操作・解析はできません。</strong>
+  <span>ChatGPTアプリのHTMLプレビューなど、JavaScriptが制限される画面では盤面が静止表示になります。Webサイトとして公開したURLをSafariで開くと操作できます。使い方はこの画面の下部に記載しています。</span>
+ </div>
+ <div class="intro"><div><h2>盤面を入力して、最善手を探す。</h2><p>タップ操作・終盤完全読み・対局局面の再現に対応</p></div></div>
+ <div class="layout">
+  <section class="panel board-panel" aria-label="リバーシ盤面">
+   <div class="row-line">
+    <div class="tabs" aria-label="操作モード"><button id="play-tab" class="selected" type="button">対局モード</button><button id="edit-tab" type="button">盤面編集</button></div>
+    <div class="turn" id="turn-label"><span class="mini-disk black"></span> 黒番</div>
+   </div>
+   <div class="board-area">
+    <div class="rank" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
+    <div id="board" class="board" role="group" aria-label="8×8のオセロ盤">
+     <button type="button" class="square" aria-label="A1 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="B1 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="C1 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="D1 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="E1 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="F1 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="G1 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="H1 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="A2 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="B2 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="C2 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="D2 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="E2 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="F2 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="G2 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="H2 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="A3 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="B3 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="C3 空き" tabindex="-1"></button>
+     <button type="button" class="square legal" aria-label="D3 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="E3 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="F3 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="G3 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="H3 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="A4 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="B4 空き" tabindex="-1"></button>
+     <button type="button" class="square legal" aria-label="C4 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="D4 白石" tabindex="-1"><span class="disk white" aria-hidden="true"></span></button>
+     <button type="button" class="square" aria-label="E4 黒石" tabindex="-1"><span class="disk black" aria-hidden="true"></span></button>
+     <button type="button" class="square" aria-label="F4 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="G4 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="H4 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="A5 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="B5 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="C5 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="D5 黒石" tabindex="-1"><span class="disk black" aria-hidden="true"></span></button>
+     <button type="button" class="square" aria-label="E5 白石" tabindex="-1"><span class="disk white" aria-hidden="true"></span></button>
+     <button type="button" class="square legal" aria-label="F5 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="G5 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="H5 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="A6 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="B6 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="C6 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="D6 空き" tabindex="-1"></button>
+     <button type="button" class="square legal" aria-label="E6 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="F6 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="G6 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="H6 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="A7 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="B7 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="C7 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="D7 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="E7 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="F7 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="G7 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="H7 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="A8 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="B8 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="C8 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="D8 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="E8 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="F8 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="G8 空き" tabindex="-1"></button>
+     <button type="button" class="square" aria-label="H8 空き" tabindex="-1"></button>
+    </div>
+    <div></div><div class="file" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
+   </div>
+   <div class="score-row">
+     <div class="scorebox black"><span class="score-label"><i class="mini-disk black"></i> 黒</span><strong id="black-count">2</strong></div>
+     <div class="scorebox white"><span class="score-label"><i class="mini-disk"></i> 白</span><strong id="white-count">2</strong></div>
+     <div class="scorebox"><span>空き</span><strong id="empty-count">60</strong></div>
+   </div>
+   <div class="action-row"><button class="btn" id="undo" type="button">↶ 1手戻す</button><button class="btn" id="pass" type="button">パス</button><button class="btn" id="reset" type="button">初期配置</button></div>
+   <div class="edit-toolbar" id="edit-toolbar"><p>タップごとに「空き → 黒 → 白 → 空き」を切り替えます。棋譜がなくても任意の盤面を再現できます。</p><div class="selectrow"><label for="side-select">次の手番</label><select id="side-select"><option value="B">黒</option><option value="W">白</option></select><button class="btn secondary" id="finish-edit" type="button">編集を終了</button></div></div>
+   <p class="hint" id="board-hint">緑の点が合法手です。タップすると着手します。</p>
+  </section>
+  <aside class="side-panel">
+   <section class="panel analysis-panel" aria-label="解析結果">
+     <div class="analysis-header"><span class="eyebrow">ENGINE ANALYSIS</span><span class="mode-pill" id="analysis-type">待機中</span></div>
+     <h2 class="panel-title" style="margin-top:8px">おすすめの一手</h2>
+     <div class="recommend"><span class="move-big" id="best-move">—</span><div class="move-hint" id="move-description">「解析開始」を押すと候補手を表示します。</div></div>
+     <div class="analysis-status" id="analysis-detail"><p>近似評価と終局までの勝敗証明を区別して表示します。</p></div>
+     <button class="btn primary wide" id="analyze" type="button" style="margin-top:13px">解析開始</button>
+     <button class="btn danger wide" id="stop" type="button" style="margin-top:8px;display:none">解析を中止</button>
+   </section>
+   <section class="panel settings"><h2 class="panel-title">解析設定</h2>
+     <div class="setting-row"><label for="analysis-mode">解析モード</label><select id="analysis-mode"><option value="0">自動切り替え（推奨）</option><option value="1">近似評価・速度優先</option><option value="3">終局の勝敗証明</option><option value="2">終局の正確な石差</option></select><small>自動では残り24マス以下で勝敗証明、16マス以下で石差確定を試します。</small></div>
+     <div class="setting-row"><label for="seconds">最大解析時間</label><select id="seconds"><option value="1">1秒（すばやく）</option><option value="3">3秒</option><option value="5" selected>5秒（標準）</option><option value="10">10秒</option><option value="20">20秒</option><option value="40">40秒（深く読む）</option></select></div>
+     <div class="setting-row"><label for="depth">近似解析の最大深度</label><select id="depth"><option value="6">6手</option><option value="8">8手</option><option value="10">10手</option><option value="12" selected>12手</option><option value="14">14手</option><option value="16">16手</option></select><small>最大深度に届く前に時間切れとなる場合があります。</small></div>
+   </section>
+   <section class="panel import-panel"><details><summary>盤面テキストの入出力</summary>
+      <small>8行の「B 黒 / W 白 / . 空き」。行区切りは改行または / です。</small>
+      <textarea id="board-text" spellcheck="false" aria-label="盤面テキスト"></textarea>
+      <div class="action-row"><button class="btn" id="import" type="button">盤面を適用</button><button class="btn" id="export" type="button">盤面を表示</button><button class="btn" id="copy" type="button">コピー</button></div>
+     </details>
+     <div class="sample-buttons"><button class="btn secondary" id="sample-a1" type="button">実戦サンプル・残24</button><button class="btn secondary" id="sample-end" type="button">実戦サンプル・残16</button></div>
+   </section>
+  </aside>
+ </div>
+</main>
+<section class="help-panel" aria-label="操作ガイド">
+  <details open><summary>iPhoneでの使い方・開けないとき</summary>
+  <p><strong>重要：</strong>ChatGPTアプリの「HTMLファイルのプレビュー」はWebブラウザではありません。盤面が静止して見える場合、解析ボタンは動作しません。ファイル内容の故障とは限りません。</p>
+  <p>動作させるには、このフォルダーのサイト一式をGitHub Pagesなどへ配置し、発行された<strong>https://で始まるURLをSafariで開いて</strong>ください。最初のアクセス後は、対応ブラウザでオフライン利用もできます。</p>
+  <p>公開先にファイルを置いたら、左上の4つの石が表示されて盤面タップに反応するか確認してください。解析ボタンで推奨手が出れば正常です。</p>
+  <p>詳しい導入方法は同梱の「使い方.pdf」「使い方.html」を参照してください。</p>
+  </details>
+</section>
+<footer class="footnote">Reversi Lab v1.1 · v2の探索アルゴリズムをWebAssemblyに移植。解析は端末内で実行され、盤面を外部サーバーに送信しません。終局探索は「確定」と表示された場合だけ数学的な保証があります。実際の棋力は未測定です。</footer>
+<div id="toast" role="status" aria-live="polite" class="toast"></div>
+<script>window.__EMBEDDED_WORKER_CODE="const WASM_BASE64=\"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AkAgDUIBg1ANAEEAQUggAUKAAoNQG0E4IABCgAKDUBtBAEFIIAFCAoNQG0E4IABCAoNQG2ogCmohCgJAIABCgASDUA0AIApB0gBqIQoMAQsgCkEAQa5/IAFCgASDUBtqIQoLAkAgDUKAAYNQDQBBAEFIIAFCgIACg1AbQTggAEKAgAKDUBtBAEFIIAFCwACDUBtBOCAAQsAAg1AbaiAKaiEKAkAgAEKAgAGDUA0AIApB0gBqIQoMAQsgCkEAQa5/IAFCgIABg1AbaiEKCwJAIA1CgICAgICAgIABg1ANAEEAQUggAUKAgICAgICAgAKDUBtBOCAAQoCAgICAgICAAoNQG0EAQUggAUKAgICAgIDAAINQG0E4IABCgICAgICAwACDUBtqIApqIQoCQCAAQoCAgICAgIABg1ANACAKQdIAaiEKDAELIApBAEGufyABQoCAgICAgIABg1AbaiEKCwJAIA1Cf1UNAEEAQUggAUKAgICAgICAgMAAg1AbQTggAEKAgICAgICAgMAAg1AbQQBBSCABQoCAgICAgIDAAINQG0E4IABCgICAgICAgMAAg1AbaiAKaiEKAkAgAEKAgICAgICAIINQDQAgCkHSAGohCgwBCyAKQQBBrn8gAUKAgICAgICAIINQG2ohCgtBASEHIAUgAUIIiCABQgiGhCABQgGGQv79+/fv37//foOEIAFCAYhC//79+/fv37//AIOEIAFCCYZCgPz79+/fv/9+g4QgAUIHhkKA/v379+/fv/8Ag4QgAUIHiEL+/fv379+//wCDhCABQgmIQv/+/fv3798/g4QgDUJ/hSIIg3unIABCCIggAEIIhoQgAEIBhkL+/fv379+//36DhCAAQgGIQv/+/fv379+//wCDhCAAQgmGQoD8+/fv37//foOEIABCB4ZCgP79+/fv37//AIOEIABCB4hC/v379+/fv/8Ag4QgAEIJiEL//v379+/fP4OEIAiDe6drQQpsIABCgYGAgICAgICBf4N7pyABQoGBgICAgICAgX+De6drQYIBbGogCEIIiCAIQgiGhCAIQgGGQv79+/fv37//foOEIAhCAYhC//79+/fv37//AIOEIAhCCYZCgPz79+/fv/9+g4QgCEIHhkKA/v379+/fv/8Ag4QgCEIHiEL+/fv379+//wCDhCAIQgmIQv/+/fv3798/g4QiCCAAg3unIAggAYN7p2tBeWxqIAsgDGtBGGxqIA8gAHunIAF7p2tsaiAKQQF0aiAJe6cgASAAEIOAgIAAe6drQRZBCkEQIA5CNlYbIA5CL1QbbGo2AgALIAZBkARqJICAgIAAIAcLCwBBACgCgIqAgAALCwBBACgCqIqAgQALCwBBACgCrIqAgQALCwBBAC0AsIqAgQALCwBBAC0AtIqAgQALCwBBACgChIqAgAALCwBBAC0AuIqAgQALCwBBAC0AvIqAgQALIAEBfkEAKQOgioCBACIAQv////8HIABC/////wdUG6cLFgAgASAAIAIbIAAgASACGxCDgICAAAsYACABIAAgAhsgACABIAIbIAMQhoCAgAALhw0BAn5CASEBQgAhAgJAIABCAYNQDQACQCAAQgKDUA0AAkAgAEIEg1BFDQBCAyEBDAELAkAgAEIIg1BFDQBCByEBDAELAkAgAEIQg1BFDQBCDyEBDAELAkAgAEIgg1BFDQBCHyEBDAELAkAgAELAAINQRQ0AQj8hAQwBC0L/AEL/ASAAQoABg1AbIQELAkAgAEKAAoNQRQ0AIAEhAgwBCwJAIABCgIAEg1BFDQAgAUKAAoQhAgwBCwJAIABCgICACINQRQ0AIAFCgIIEhCECDAELAkAgAEKAgICAEINQRQ0AIAFCgIKECIQhAgwBCwJAIABCgICAgIAgg1BFDQAgAUKAgoSIEIQhAgwBCwJAIABCgICAgICAwACDUEUNACABQoCChIiQIIQhAgwBCyABQoCChIiQoMAAQoCChIiQoMCAASAAQoCAgICAgICAAYNQG4QhAgsCQCAAQoABg1ANAAJAAkAgAELAAINQRQ0AIAJCgAGEIQIMAQsCQCAAQiCDUEUNACACQsABhCECDAELAkAgAEIQg1BFDQAgAkLgAYQhAgwBCwJAIABCCINQRQ0AIAJC8AGEIQIMAQsCQCAAQgSDUEUNACACQvgBhCECDAELAkAgAEICg1BFDQAgAkL8AYQhAgwBCyACQv4BQv8BIABCAYNQG4QhAgsgAEKAgAKDUA0AAkAgAEKAgIAEg1BFDQAgAkKAgAKEIQIMAQsCQCAAQoCAgIAIg1BFDQAgAkKAgIIEhCECDAELAkAgAEKAgICAgBCDUEUNACACQoCAgoQIhCECDAELAkAgAEKAgICAgIAgg1BFDQAgAkKAgIKEiBCEIQIMAQsCQCAAQoCAgICAgIDAAINQRQ0AIAJCgICChIiQIIQhAgwBCyACQoCAgoSIkKDAAEKAgIKEiJCgwIB/IABCf1UbhCECCwJAIABCgICAgICAgIABg1ANAAJAAkAgAEKAgICAgICAgAKDUEUNACACQoCAgICAgICAAYQhAgwBCwJAIABCgICAgICAgIAEg1BFDQAgAkKAgICAgICAgAOEIQIMAQsCQCAAQoCAgICAgICACINQRQ0AIAJCgICAgICAgIAHhCECDAELAkAgAEKAgICAgICAgBCDUEUNACACQoCAgICAgICAD4QhAgwBCwJAIABCgICAgICAgIAgg1BFDQAgAkKAgICAgICAgB+EIQIMAQsCQCAAQoCAgICAgICAwACDUEUNACACQoCAgICAgICAP4QhAgwBCyACQoCAgICAgICA/wBCgICAgICAgIB/IABCf1UbhCECCyAAQoCAgICAgMAAg1ANAAJAIABCgICAgIAgg1BFDQAgAkKAgICAgIDAAIQhAgwBCwJAIABCgICAgBCDUEUNACACQoCAgICAoMAAhCECDAELAkAgAEKAgIAIg1BFDQAgAkKAgICAkKDAAIQhAgwBCwJAIABCgIAEg1BFDQAgAkKAgICIkKDAAIQhAgwBCwJAIABCgAKDUEUNACACQoCAhIiQoMAAhCECDAELIAJCgIKEiJCgwABCgYKEiJCgwAAgAEIBg1AbhCECCwJAIABCf1UNAAJAAkAgAEKAgICAgICAgMAAg1BFDQAgAkKAgICAgICAgIB/hCECDAELAkAgAEKAgICAgICAgCCDUEUNACACQoCAgICAgICAQIQhAgwBCwJAIABCgICAgICAgIAQg1BFDQAgAkKAgICAgICAgGCEIQIMAQsCQCAAQoCAgICAgICACINQRQ0AIAJCgICAgICAgIBwhCECDAELAkAgAEKAgICAgICAgASDUEUNACACQoCAgICAgICAeIQhAgwBCwJAIABCgICAgICAgIACg1BFDQAgAkKAgICAgICAgHyEIQIMAQsgAkKAgICAgICAgH5CgICAgICAgIB/IABCgICAgICAgIABg1AbhCECCyAAQoCAgICAgIDAAINQDQACQCAAQoCAgICAgCCDUEUNACACQoCAgICAgIDAAIQhAgwBCwJAIABCgICAgIAQg1BFDQAgAkKAgICAgICgwACEIQIMAQsCQCAAQoCAgIAIg1BFDQAgAkKAgICAgJCgwACEIQIMAQsCQCAAQoCAgASDUEUNACACQoCAgICIkKDAAIQhAgwBCwJAIABCgIACg1BFDQAgAkKAgICEiJCgwACEIQIMAQsgAkKAgIKEiJCgwABCgIGChIiQoMAAIABCgAGDUBuEIQILIAJ7pwsLmgICAEGACAuAArQAAADd////FAAAAAwAAAAMAAAAFAAAAN3///+0AAAA3f///8T////2////+P////j////2////xP///93///8UAAAA9v///woAAAAEAAAABAAAAAoAAAD2////FAAAAAwAAAD4////BAAAAAIAAAACAAAABAAAAPj///8MAAAADAAAAPj///8EAAAAAgAAAAIAAAAEAAAA+P///wwAAAAUAAAA9v///woAAAAEAAAABAAAAAoAAAD2////FAAAAN3////E////9v////j////4////9v///8T////d////tAAAAN3///8UAAAADAAAAAwAAAAUAAAA3f///7QAAAAAQYAKCwz/////AQAAAAEAAAAAlwIEbmFtZQAMC2VuZ2luZS53YXNtAdoBFAAGbm93X21zARFfX3dhc21fY2FsbF9jdG9ycwIHYW5hbHl6ZQMFbGVnYWwEB29yZGVyZWQFBHJvb3QGBWZsaXBzBwZzZWFyY2gICGdldF9iZXN0CQlnZXRfc2NvcmUKCWdldF9kZXB0aAsMZ2V0X2NvbXBsZXRlDAtnZXRfdGltZW91dA0IZ2V0X21vZGUOCGdldF9wYXNzDw1nZXRfZ2FtZV9vdmVyEAlnZXRfbm9kZXMRCmxlZ2FsX21hc2sSCWZsaXBfbWFzaxMOYW5jaG9yZWRfZWRnZXMHEgEAD19fc3RhY2tfcG9pbnRlcgkRAgAHLnJvZGF0YQEFLmRhdGEAfwlwcm9kdWNlcnMBDHByb2Nlc3NlZC1ieQEFY2xhbmdfMTcuMC4wIChodHRwczovL2dpdGh1Yi5jb20vc3dpZnRsYW5nL2xsdm0tcHJvamVjdC5naXQgMTA5OTliNmQwMzRmZTMxOGYzZDU2YzgzYmRkYjY1NzI1OTNhOGJiMCkASQ90YXJnZXRfZmVhdHVyZXMEKwptdWx0aXZhbHVlKw9tdXRhYmxlLWdsb2JhbHMrD3JlZmVyZW5jZS10eXBlcysIc2lnbi1leHQ=\";\n/* Reversi Lab — runs analysis on a separate thread so the page stays responsive. */\nlet enginePromise;\nasync function engine() {\n  if (!enginePromise) enginePromise = (async () => {\n    let bytes;\n    if (typeof WASM_BASE64 === 'string' && WASM_BASE64.length) {\n      const bin = atob(WASM_BASE64);\n      bytes = Uint8Array.from(bin, c => c.charCodeAt(0));\n    } else {\n      const response = await fetch('./engine.wasm');\n      if (!response.ok) throw new Error('WebAssemblyファイルを読み込めません');\n      bytes = await response.arrayBuffer();\n    }\n    const { instance } = await WebAssembly.instantiate(bytes, { env: { now_ms: () => performance.now() } });\n    return instance.exports;\n  })();\n  return enginePromise;\n}\nself.onmessage = async ({ data }) => {\n  if (data.type !== 'analyze') return;\n  try {\n    const wasm = await engine();\n    wasm.analyze(BigInt(data.black), BigInt(data.white), data.side === 'B' ? 0 : 1,\n      data.mode, data.depth, data.timeMs, data.nodeLimit || 0);\n    self.postMessage({ type: 'result', id: data.id, result: {\n      best: wasm.get_best(), score: wasm.get_score(), depth: wasm.get_depth(),\n      complete: !!wasm.get_complete(), timeout: !!wasm.get_timeout(),\n      mode: wasm.get_mode(), pass: !!wasm.get_pass(), gameOver: !!wasm.get_game_over(),\n      nodes: wasm.get_nodes()\n    }});\n  } catch (err) {\n    self.postMessage({ type: 'error', id: data.id, message: err?.message || String(err) });\n  }\n};\n";</script>
+<script>
+'use strict';
+(() => {
+  const $ = id => document.getElementById(id);
+  const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+  const START = ['........','........','........','...WB...','...BW...','........','........','........'];
+  const SAMPLES = {
+    a1: ['........','BWWWW...','BWWWW.W.','BBWBWW..','BWWBWW..','BWWBWW..','BBWBWW..','BBBBB...'],
+    end: ['BBBWWB..','BBWWW..B','BWBBWWB.','BBBBWW..','BBWBBW..','BWWBWW..','BBWBWW..','BBBBB...']
+  };
+  let board=START.join('').split(''), side='B', editing=false, lastMove=-1, lastPass=false;
+  let history=[], requestId=0, working=false, worker=null, analysis=null, toastTimer=null;
+  const coord = i => String.fromCharCode(65+i%8)+(Math.floor(i/8)+1);
+  const opponent = color => color==='B'?'W':'B';
+  function getFlips(arr, color, index) {
+    if (index<0 || index>=64 || arr[index]!=='.') return [];
+    const r=Math.floor(index/8), c=index%8, other=opponent(color), found=[];
+    for (const [dr,dc] of dirs) {
+      const line=[];let y=r+dr,x=c+dc;
+      while(y>=0&&y<8&&x>=0&&x<8&&arr[y*8+x]===other) {
+        line.push(y*8+x);y+=dr;x+=dc;
+      }
+      if(line.length&&y>=0&&y<8&&x>=0&&x<8&&arr[y*8+x]===color)found.push(...line);
+    }
+    return found;
+  }
+  function getLegal(arr,color) {const moves=[];for(let i=0;i<64;i++)if(arr[i]==='.'&&getFlips(arr,color,i).length)moves.push(i);return moves;}
+  function counts() {return {black:board.filter(x=>x==='B').length,white:board.filter(x=>x==='W').length,empty:board.filter(x=>x==='.').length};}
+  function stat() {
+    const legal=getLegal(board,side),opp=getLegal(board,opponent(side));
+    return {legal,over:legal.length===0&&opp.length===0,pass:legal.length===0&&opp.length>0};
+  }
+  function flash(message) {
+    clearTimeout(toastTimer);$('toast').textContent=message;$('toast').classList.add('visible');
+    toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),3300);
+  }
+  function stopSearch(silent=true) {
+    if(worker){worker.terminate();if(worker.__sourceUrl)URL.revokeObjectURL(worker.__sourceUrl);worker=null;}
+    const wasWorking=working;working=false;requestId++;
+    $('analyze').style.display='block';$('stop').style.display='none';$('analyze').disabled=false;
+    $('analyze').innerHTML='解析開始';
+    if(!silent&&wasWorking)flash('解析を中止しました');
+  }
+  function forgetAnalysis(){if(working)stopSearch();analysis=null;}
+  function save(){try{localStorage.setItem('reversi-lab-v1',JSON.stringify({board:board.join(''),side,lastMove}));}catch(_){}}
+  function render() {
+    const warning=$('preview-warning');if(warning)warning.hidden=true;
+    const s=stat(), count=counts(), best=analysis?.best;
+    const grid=$('board');grid.replaceChildren();
+    const fragment=document.createDocumentFragment();
+    for(let i=0;i<64;i++){
+      const sq=document.createElement('button');sq.type='button';sq.className='square';
+      const legal=!editing&&s.legal.includes(i);
+      if(legal)sq.classList.add('legal');
+      if(editing)sq.classList.add('edit');
+      if(!editing&&analysis?.complete&&best===i&&!s.pass&&!s.over)sq.classList.add('best');
+      if(lastMove===i)sq.classList.add('last');
+      sq.setAttribute('aria-label',`${coord(i)} ${board[i]==='B'?'黒石':board[i]==='W'?'白石':legal?'合法手':'空き'}`);
+      if(board[i]!=='.'){
+        const disk=document.createElement('span');disk.className='disk '+(board[i]==='B'?'black':'white');disk.setAttribute('aria-hidden','true');sq.append(disk);
+      }
+      sq.addEventListener('click',()=>squareClick(i));fragment.append(sq);
+    }
+    grid.append(fragment);
+    $('black-count').textContent=count.black;$('white-count').textContent=count.white;$('empty-count').textContent=count.empty;
+    const who=side==='B'?'黒':'白';
+    $('turn-label').innerHTML=`<span class="mini-disk ${side==='B'?'black':''}"></span><strong>${who}番</strong>`;
+    $('undo').disabled=!history.length;
+    $('pass').disabled=editing||!s.pass;
+    $('edit-tab').classList.toggle('selected',editing);$('play-tab').classList.toggle('selected',!editing);
+    $('edit-toolbar').classList.toggle('active',editing);$('side-select').value=side;
+    $('board-hint').textContent=editing?'盤面をタップして石を編集できます。次の手番も設定してください。':s.over?
+      `終局：${count.black>count.white?'黒の勝利':count.white>count.black?'白の勝利':'引き分け'}（${count.black}対${count.white}）`:
+      s.pass?'この手番はパスです。「パス」を押して進めてください。':
+      `${who}の合法手 ${s.legal.length}か所。黄色の枠は解析で選ばれた候補手です。`;
+    renderAnalysis();
+  }
+  function renderAnalysis(){
+    if(working){$('analysis-type').textContent='解析中';$('best-move').textContent='…';$('move-description').textContent='最大指定時間まで探索しています';$('analysis-detail').innerHTML='<p>解析中は盤面を編集できますが、その場合は計算を中断します。</p>';return;}
+    if(!analysis){$('analysis-type').textContent='待機中';$('best-move').textContent='—';$('move-description').textContent='「解析開始」を押すと候補手を表示します。';$('analysis-detail').innerHTML='<p>近似評価と終局までの勝敗証明を区別して表示します。</p>';return;}
+    const {best,score,depth,complete,timeout,mode,nodes,pass,gameOver}=analysis;
+    const exact=mode===2, wld=mode===3, definitive=(exact||wld)&&complete;
+    $('analysis-type').textContent=exact?'完全読み・石差':wld?'完全読み・勝敗':'近似評価';
+    const go=stat();
+    if(gameOver){$('best-move').textContent='終局';$('move-description').textContent='両者とも合法手なし';}
+    else if(pass){$('best-move').textContent='PASS';$('move-description').textContent='現在の手番は合法手がありません';}
+    else if(!complete){$('best-move').textContent='—';$('move-description').textContent='解析が完了せず、候補手は未確定です';}
+    else{$('best-move').textContent=coord(best);$('move-description').textContent=`${side==='B'?'黒':'白'}の推奨候補（${getFlips(board,side,best).length}枚返す）`;}
+    let rating='';
+    if(definitive&&exact){rating=`<div class="proof">最終石差を確定：${score>0?'+':''}${score}枚（${side==='B'?'黒':'白'}視点）</div>`;}
+    else if(definitive&&wld){rating=`<div class="proof">終局までの勝敗を確定：${score>0?'勝利':score===0?'引き分け':'敗北'}</div>`;}
+    else if(mode===1&&complete){rating=`<div class="metric"><span>独自評価値（勝率ではありません）</span><strong>${score>0?'+':''}${score}</strong></div>`;}
+    else rating='<div class="warning">終局までの計算は未完了です。勝敗の保証はありません。</div>';
+    const warning=timeout?'<div class="warning">制限時間・計算量の上限に達しました。近似結果の場合は完了した探索深度までの情報です。</div>':'';
+    $('analysis-detail').innerHTML=rating+`<div class="metric"><span>探索深度</span><strong>${depth||'—'}手</strong></div><div class="metric"><span>探索局面数</span><strong>${nodes.toLocaleString('ja-JP')}</strong></div>`+warning+
+      (mode===1?'<p>序盤〜中盤は近似探索です。強い相手に対する最善手は保証できません。</p>':
+       definitive?'<p>入力盤面が正しい場合、相手が最善手を選んでも示した勝敗／石差を維持できます。</p>':'' );
+  }
+  function addHistory(){history.push({board:board.join(''),side,lastMove,lastPass});if(history.length>300)history.shift();}
+  function squareClick(i){
+    if(editing){addHistory();board[i]=board[i]==='.'?'B':board[i]==='B'?'W':'.';lastMove=-1;lastPass=false;forgetAnalysis();save();render();return;}
+    const changes=getFlips(board,side,i);
+    if(!changes.length){flash('そこには置けません。緑の点が合法手です。');return;}
+    addHistory();board[i]=side;for(const k of changes)board[k]=side;
+    lastMove=i;lastPass=false;side=opponent(side);
+    // Automatically skip a player with no legal move when the other can move.
+    if(getLegal(board,side).length===0&&getLegal(board,opponent(side)).length){side=opponent(side);lastPass=true;flash(`${opponent(side)==='B'?'黒':'白'}がパス。${side==='B'?'黒':'白'}の手番です。`);}
+    forgetAnalysis();save();render();
+  }
+  function restore(snapshot){board=snapshot.board.split('');side=snapshot.side;lastMove=snapshot.lastMove;lastPass=!!snapshot.lastPass;forgetAnalysis();save();render();}
+  function loadBoard(rows,who='B'){
+    board=rows.join('').split('');side=who;lastMove=-1;lastPass=false;history=[];editing=false;forgetAnalysis();save();render();$('board-text').value=rows.join('\n');
+  }
+  function parseBoard(input){
+    const clean=input.trim().replace(/[●◆Xx]/g,'B').replace(/[○Oo]/g,'W').replace(/-/g,'.');
+    const rows=clean.includes('/')?clean.split('/').map(x=>x.trim()):clean.split(/\r?\n/).map(x=>x.replace(/\s/g,''));
+    if(rows.length!==8||rows.some(x=>x.length!==8||/[^BW.]/i.test(x)))throw Error('8行×8列、B / W / . の形式で入力してください。');
+    return rows.map(x=>x.toUpperCase());
+  }
+  function bitboards(){let black=0n,white=0n;
+    for(let i=0;i<64;i++){if(board[i]==='B')black|=1n<<BigInt(i);else if(board[i]==='W')white|=1n<<BigInt(i);}
+    return {black:String(black),white:String(white)};
+  }
+  function launch(){
+    if(working)return;
+    if(editing){flash('盤面編集を終了してから解析してください');return;}
+    analysis=null;working=true;const id=++requestId;
+    $('analyze').style.display='none';$('stop').style.display='block';renderAnalysis();
+    try{
+      const bundle=window.__EMBEDDED_WORKER_CODE;
+      let url;
+      if(bundle){url=URL.createObjectURL(new Blob([bundle],{type:'text/javascript'}));worker=new Worker(url);worker.__sourceUrl=url;}
+      else worker=new Worker('./engine.worker.js');
+      worker.onmessage=({data})=>{
+        if(data.id!==requestId)return;
+        if(data.type==='error'){stopSearch();flash('エンジンの起動に失敗: '+data.message);renderAnalysis();return;}
+        analysis=data.result;working=false;
+        $('analyze').style.display='block';$('stop').style.display='none';
+        worker.terminate();if(worker.__sourceUrl)URL.revokeObjectURL(worker.__sourceUrl);worker=null;render();
+      };
+      worker.onerror=e=>{if(id!==requestId)return;stopSearch();flash('解析エラー。Webサーバー経由で開いてください。');renderAnalysis();};
+      worker.postMessage({type:'analyze',id,...bitboards(),side,mode:Number($('analysis-mode').value),depth:Number($('depth').value),timeMs:Number($('seconds').value)*1000});
+    }catch(err){stopSearch();flash('解析を起動できません: '+err.message);renderAnalysis();}
+  }
+  $('play-tab').onclick=()=>{editing=false;forgetAnalysis();render();};
+  $('edit-tab').onclick=()=>{editing=true;forgetAnalysis();render();};
+  $('finish-edit').onclick=()=>{editing=false;forgetAnalysis();render();};
+  $('side-select').onchange=e=>{side=e.target.value;lastMove=-1;forgetAnalysis();save();render();};
+  $('undo').onclick=()=>{if(history.length)restore(history.pop());};
+  $('pass').onclick=()=>{if(getLegal(board,side).length)return;addHistory();side=opponent(side);lastMove=-1;lastPass=true;forgetAnalysis();save();render();};
+  $('reset').onclick=()=>{loadBoard(START);flash('初期配置に戻しました');};
+  $('analyze').onclick=launch;$('stop').onclick=()=>{stopSearch(false);renderAnalysis();};
+  $('import').onclick=()=>{try{const rows=parseBoard($('board-text').value);loadBoard(rows,side);flash('盤面を読み込みました');}catch(err){flash(err.message);}};
+  $('export').onclick=()=>{$('board-text').value=Array.from({length:8},(_,i)=>board.slice(i*8,i*8+8).join('')).join('\n');flash('現在の盤面を表示しました');};
+  $('copy').onclick=async()=>{
+    const text=Array.from({length:8},(_,i)=>board.slice(i*8,i*8+8).join('')).join('\n');
+    $('board-text').value=text;
+    try{await navigator.clipboard.writeText(text);flash('盤面をコピーしました');}
+    catch(_){$('board-text').focus();$('board-text').select();try{document.execCommand('copy');flash('盤面をコピーしました');}catch(e){flash('テキストを選択してコピーしてください');}}
+  };
+  $('sample-a1').onclick=()=>{loadBoard(SAMPLES.a1);flash('実戦サンプル（残24マス）を読み込みました');};
+  $('sample-end').onclick=()=>{loadBoard(SAMPLES.end);flash('実戦サンプル（残16マス）を読み込みました');};
+  for(const id of ['analysis-mode','seconds','depth'])$(id).addEventListener('change',()=>{forgetAnalysis();render();});
+  // Restore the last position on this device only, never send it to a server.
+  try{const saved=JSON.parse(localStorage.getItem('reversi-lab-v1')||'null');
+    if(saved&&/^[.BW]{64}$/.test(saved.board)&&['B','W'].includes(saved.side)){
+      board=saved.board.split('');side=saved.side;lastMove=Number.isInteger(saved.lastMove)?saved.lastMove:-1;
+    }
+  }catch(_){}
+  render();
+  if('serviceWorker' in navigator && location.protocol==='https:') {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+  $('board-text').value=Array.from({length:8},(_,i)=>board.slice(i*8,i*8+8).join('')).join('\n');
+})();
+
+</script>
+</body></html>
