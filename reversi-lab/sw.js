@@ -1,5 +1,5 @@
 /* Offline support scoped to /reversi-lab/ only. */
-const CACHE = 'reversi-lab-standalone-20261107';
+const CACHE = 'reversi-lab-standalone-v1.2-20261107';
 const CORE = ['./', './index.html'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
